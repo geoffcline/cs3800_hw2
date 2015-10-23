@@ -13,6 +13,11 @@ int main ( int argc, char *argv[] )
   int p;  //total MPI processes
   MPI::Status status;
   int tag = 1;
+  int q_start = 0;
+  int q_held = 0;
+
+  bool* forks;
+  int*  queue;
 
   //  Initialize MPI.
   MPI::Init ( argc, argv );
@@ -29,6 +34,13 @@ int main ( int argc, char *argv[] )
 	    std::cerr << "Need at least 2 philosophers! Try again" << std::endl;
 	    return 1; //non-normal exit
   }
+
+  //setup arrays
+  forks = new bool[p];
+  queue = new int[p];
+
+  for (int i = 0; i < p; i++)
+	  forks[i] = false;
 
   srand(id + time(NULL)); //ensure different seeds...
   
