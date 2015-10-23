@@ -58,13 +58,39 @@ int main ( int argc, char *argv[] )
   }
   else //I'm a philosopher
   {
-    //pick a number between 0 and the number of processes (one more than # of philosophers)
-	int msgOut = rand() % p; 
+
+    eat_quota = rand();
+
+    while(eat_quota > 0)
+    {
+      sleep(rand());
+
+      //request forks
+      msgOut = eat_quota;
+      std::cout << "This is Philosopher " << id << " requesting forks with message " << msgOut << std::endl;
+      MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, 0, tag ); 
+      
+      //wait for forks
+      MPI::COMM_WORLD.Recv ( &msgIn, 1, MPI::INT, 0, tag, status );
+      std::cout << "This is Philosopher " << id << " recieving message of " << msgIn << std::endl;
+
+      //eat 
+      toeat = rand() % eat_quota;
+      sleep(toeat);
+      eat_quota -= toeat;
+
+      //return forks
+      msgOut = -1;
+      std::cout << "This is Philosopher " << id << " sending message of " << msgOut << std::endl;
+      MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, 0, tag ); 
+    }
 	
-	std::cout << "This is Philosopher " << id << " sending message of " << msgOut << std::endl;
-	
-   	//check in with master - send a random number (node 0 = master)
-	MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, 0, tag ); 
+    std::cout << "This is Philosopher " << id << " and I am full. ";
+    //return forks
+    msgOut = -1;
+    std::cout << "This is Philosopher " << id << " sending message of " << msgOut << std::endl;
+    MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, 0, tag ); 
+
   }
   
   //  Terminate MPI.
