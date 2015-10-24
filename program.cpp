@@ -22,7 +22,6 @@ int main ( int argc, char *argv[] )
 
   int* forks;
   int* queue;
-  bool* 
 
   int msgIn, msgOut;
 
@@ -59,7 +58,7 @@ int main ( int argc, char *argv[] )
     while(going_p > 0)
     {
       MPI::COMM_WORLD.Recv ( &msgIn, 1, MPI::INT, MPI::ANY_SOURCE, tag, status );
-      recd = status.GetSournce();
+      recd = status.Get_source();
 
       if(msgIn == -1) //reporting full
       {
@@ -72,6 +71,7 @@ int main ( int argc, char *argv[] )
         forks[recd] = 0;
         forks[(recd + 1) % p] = 0;
 
+        /*
         for(int i = q_held; i > 0; i--)
         {
           if( forksavailalbe(rec))
@@ -79,12 +79,12 @@ int main ( int argc, char *argv[] )
             assignforks();
             dequeue();
           }
-        } 
+        } */
       }
       else if (msgIn > 0)
       {
         cout << "Philos " << recd << " is hungry for: " << msgIn;
-        if ( forks[recd] == 0 && forks[recd] && forks[(recd + 1) % p] == 0)
+        if ( forks[recd] == 0 && forks[(recd + 1) % p] == 0)
         {
           forks[recd] = recd;
           forks[(recd + 1) % p] = recd;
@@ -103,20 +103,20 @@ int main ( int argc, char *argv[] )
       }
       else
       {
-        cout << "wut" << endk;
+        cout << "wut" << endl;
       }
     }
 	}
-
-  }
   else //I'm a philosopher
   {
 
-    eat_quota = rand();
+    eat_quota = rand() % 30;
 
     while(eat_quota > 0)
     {
-      sleep(rand());
+      cout << "wating : " << id << endl; 
+      sleep(rand() % 10);
+      cout << "done wating" << endl;
 
       //request forks
       msgOut = eat_quota;
