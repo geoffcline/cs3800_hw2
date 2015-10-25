@@ -58,7 +58,7 @@ void ombudsman()
       {
         tid = *it;
 
-        cout << "Checking:  " << tid;
+        cout << "\tChecking:  " << tid;
 
         if(forks[tid] == 0 && forks[(tid + 1) % p] == 0)
         {
@@ -87,7 +87,7 @@ void ombudsman()
         
       }
 
-      cout << "Done Checking " << endl;
+      cout << "\tDone Checking " << endl;
     }
     //INCOMING REQUEST
     else if (msgIn > 0)
@@ -119,6 +119,6 @@ void ombudsman()
 
 
   delete forks;
-  
+
   return;
 }

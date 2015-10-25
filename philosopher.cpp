@@ -47,5 +47,10 @@ void philosopher()
     MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, 0, tag ); 
   }
 
+  //return full
+  msgOut = 0;
+  std::cout << "Reporting Full: " << id << " | M: " << msgOut << std::endl;
+  MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, 0, tag ); 
+
   return;
 }
