@@ -2,110 +2,34 @@
 #include <iostream>
 #include <cerrno>
 #include <unistd.h>
+#include <queue>
 
 using namespace std;
 
 #include "mpi.h"
 
+void ombudsman();
+
+void philosopher();
+
 int main ( int argc, char *argv[] ) 
 {
-  int id; //my MPI ID
-  int p;  //total MPI processes
-  MPI::Status status;
-  int tag = 1;
-  int q_start = 0;
-  int q_held = 0;
-  int going_p;
-  int recd;
-
-  int eat_quota, toeat;
-
-  int* forks;
-  int* queue;
-
-  int msgIn, msgOut;
-
-  //  Initialize MPI.
   MPI::Init ( argc, argv );
-
-  //  Get the number of processes.
-  p = MPI::COMM_WORLD.Get_size ( );
-
-  going_p = p;
-
-  //  Determine the rank of this process.
-  id = MPI::COMM_WORLD.Get_rank ( );
   
   //Safety check - need at least 2 philosophers to make sense
-  if (p < 3) {
+  if (MPI::COMM_WORLD.Get_size ( ) < 3) {
 	    MPI::Finalize ( );
 	    std::cerr << "Need at least 2 philosophers! Try again" << std::endl;
 	    return 1; //non-normal exit
   }
-
-  //setup arrays
-  forks = new int[p];
-  queue = new int[p];
-
-  for (int i = 0; i < p; i++)
-	  forks[i] = 0;
 
   srand(id + time(NULL)); //ensure different seeds...
   
   //  Setup Fork Master (Ombudsman) and Philosophers
   if ( id == 0 ) //Master
   {
-    while(going_p > 0)
-    {
-      MPI::COMM_WORLD.Recv ( &msgIn, 1, MPI::INT, MPI::ANY_SOURCE, tag, status );
-      recd = status.Get_source();
-
-      if(msgIn == -1) //reporting full
-      {
-        cout << "Philos " << recd << " is full." << endl;
-        going_p--;
-      }
-      else if (msgIn == 0) //returning forks
-      {
-        cout << "Philos " << recd << " is returning forks." << recd << "and " << (recd + 1) % p << endl;
-        forks[recd] = 0;
-        forks[(recd + 1) % p] = 0;
-
-        /*
-        for(int i = q_held; i > 0; i--)
-        {
-          if( forksavailalbe(rec))
-          {
-            assignforks();
-            dequeue();
-          }
-        } */
-      }
-      else if (msgIn > 0)
-      {
-        cout << "Philos " << recd << " is hungry for: " << msgIn;
-        if ( forks[recd] == 0 && forks[(recd + 1) % p] == 0)
-        {
-          forks[recd] = recd;
-          forks[(recd + 1) % p] = recd;
-
-          msgOut = -2;
-          MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, recd, tag ); 
-
-          cout << " | Forks Given" << endl;
-        }
-        else
-        {
-          cout << " | queued " << endl;
-          queue[ (q_start + q_held) % p ] = recd;
-          q_held++;
-        }
-      }
-      else
-      {
-        cout << "wut" << endl;
-      }
-    }
+    ombudsman();
+    
 	}
   else //I'm a philosopher
   {
