@@ -8,11 +8,14 @@ using namespace std;
 
 #include "mpi.h"
 
+bool assignforks();
+bool forksavail(); 
+
 void ombudsman()
 {
 	const int p = MPI::COMM_WORLD.Get_size ( );
 	int rid, tid;
-	int going_p = p; 
+	int going_p = p - 1; 
 
 	int* forks;
 
@@ -35,19 +38,22 @@ void ombudsman()
     MPI::COMM_WORLD.Recv ( &msgIn, 1, MPI::INT, MPI::ANY_SOURCE, tag, status );
     rid = status.Get_source();
 
+    //REPORTING FULL
     if(msgIn == 0) //reporting full
     {
-      //cout << "Philos " << rid << " is full." << endl;
+      cout << "\t\tFULL RECIEVED: " << rid << endl;
       going_p--;
+      cout << "\t\tSTILL RUNNING: " << going_p << endl;
     }
-    else if (msgIn == -1) //returning forks
+    //REPORTING WAIT RELEASE
+    else if (msgIn == -1) 
     {
-      //cout << "Philos " << rid << " is returning forks." << rid << "and " << (rid + 1) % p << endl;
-
+      //RELEASE FORKS
       cout << "Forks Returned:  " << rid <<  endl;
       forks[rid] = 0;
       forks[(rid + 1) % p] = 0;
 
+      //CHECK FOR NEWLY POSSIBLE ALLOCATIONS
       for (list<int>::iterator it=requests.begin(); it != requests.end(); ++it)
       {
         tid = *it;
@@ -66,13 +72,13 @@ void ombudsman()
 
           cout << "Held Fufilled: " << tid << endl;
 
-          //cout << tid << " | Forks Given" << endl;
-
-
           cout << "about to erase, size: " << requests.size() << endl;
-          requests.erase(it);
-          if(requests.empty())
-            break;
+          requests.remove(tid);
+
+          //PREVENT ERRORS WITH DELETING LAST/ONLY ITEM
+          it=requests.begin();
+
+
         }
         else
         {
@@ -83,9 +89,10 @@ void ombudsman()
 
       cout << "Done Checking " << endl;
     }
+    //INCOMING REQUEST
     else if (msgIn > 0)
     {
-      //cout << "Philos " << rid << " is hungry for: " << msgIn;
+      //FORKS AVAIL
       if ( forks[rid] == 0 && forks[(rid + 1) % p] == 0)
       {
         forks[rid] = rid;
@@ -97,6 +104,7 @@ void ombudsman()
 
         //cout << " | Forks Given" << endl;
       }
+      //FORKS UNAVAIL
       else
       {
         cout << "Queued: " << rid << endl;
@@ -108,4 +116,6 @@ void ombudsman()
       cout << "wut" << endl;
     }
   }
+
+  return;
 }
