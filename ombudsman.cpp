@@ -1,15 +1,4 @@
-#include <cstdlib>
-#include <iostream>
-#include <cerrno>
-#include <unistd.h>
-#include <list>
-
-using namespace std;
-
-#include "mpi.h"
-
-bool assignforks();
-bool forksavail(); 
+#include "program.h"
 
 void ombudsman()
 {
@@ -20,7 +9,6 @@ void ombudsman()
 	int* forks;
 
 	int msgIn;
-	int msgOut;
 	int tag = 1;
 
 	MPI::Status status;
@@ -39,86 +27,82 @@ void ombudsman()
     rid = status.Get_source();
 
     //REPORTING FULL
-    if(msgIn == 0) //reporting full
+    if(msgIn == MSG_FULL) //reporting full
     {
       cout << "\t\tFULL RECIEVED: " << rid << endl;
       going_p--;
       cout << "\t\tSTILL RUNNING: " << going_p << endl;
     }
     //REPORTING WAIT RELEASE
-    else if (msgIn == -1) 
+    else if (msgIn == MSG_REL) 
     {
       //RELEASE FORKS
-      cout << "Forks Returned:  " << rid <<  endl;
-      forks[rid] = 0;
-      forks[(rid + 1) % p] = 0;
+      returnforks(forks, p, rid);
+      cout << rid << "\tReturned" <<  endl;
+
 
       //CHECK FOR NEWLY POSSIBLE ALLOCATIONS
       for (list<int>::iterator it=requests.begin(); it != requests.end(); ++it)
       {
         tid = *it;
 
-        cout << "\tChecking:  " << tid;
-
-        if(forks[tid] == 0 && forks[(tid + 1) % p] == 0)
+        if(assignforks(forks, p, tid))
         {
-          
-          cout << " | YES " << endl;
-          forks[tid] = tid;
-          forks[(tid + 1) % p] = tid;
+          cout << tid << "\tHeld Request Fufilled" <<  endl;
 
-          msgOut = -2;
-          MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, tid, tag ); 
-
-          cout << "Held Fufilled: " << tid << endl;
-
-          cout << "about to erase, size: " << requests.size() << endl;
           requests.remove(tid);
 
           //PREVENT ERRORS WITH DELETING LAST/ONLY ITEM
           it=requests.begin();
-
-
-        }
-        else
-        {
-          cout << " | NO " << endl;
         }
         
       }
 
-      cout << "\tDone Checking " << endl;
     }
     //INCOMING REQUEST
     else if (msgIn > 0)
     {
-      //FORKS AVAIL
-      if ( forks[rid] == 0 && forks[(rid + 1) % p] == 0)
+      if(!assignforks(forks, p, rid))
       {
-        forks[rid] = rid;
-        forks[(rid + 1) % p] = rid;
-
-        msgOut = -2;
-        cout << "Forks Given:  " << rid <<  endl;
-        MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, rid, tag ); 
-
-        //cout << " | Forks Given" << endl;
-      }
-      //FORKS UNAVAIL
-      else
-      {
-        cout << "Queued: " << rid << endl;
+        cout << rid << "\tRequest Held" <<  endl;
         requests.push_back(rid);
       }
-    }
-    else
-    {
-      cout << "wut" << endl;
+      else
+        cout << rid << "\tRequest Fufilled" <<  endl;
     }
   }
 
 
   delete forks;
+
+  return;
+}
+
+bool assignforks(int* forks, const int p, const int rid)
+{
+  int tag = 1;
+  bool rv = forksavail(forks, p, rid);
+
+  if(rv)
+  {
+    forks[rid] = rid;
+    forks[(rid + 1) % p] = rid;
+
+    MPI::COMM_WORLD.Send ( &MSG_ALOC, 1, MPI::INT, rid, tag ); 
+  }
+
+  return rv;
+}
+
+bool forksavail(int* forks, const int p, const int rid)
+{
+  return (forks[rid] == 0 && forks[(rid + 1) % p] == 0);
+}
+
+void returnforks(int* forks, const int p, const int rid)
+{
+  forks[rid] = 0;
+  forks[(rid + 1) % p] = 0;
 
   return;
 }

@@ -1,16 +1,4 @@
-#include <cstdlib>
-#include <iostream>
-#include <cerrno>
-#include <unistd.h>
-#include <queue>
-
-using namespace std;
-
-#include "mpi.h"
-
-void ombudsman();
-
-void philosopher();
+#include "program.h"
 
 int main ( int argc, char *argv[] ) 
 {
