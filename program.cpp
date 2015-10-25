@@ -14,6 +14,12 @@ void philosopher();
 
 int main ( int argc, char *argv[] ) 
 {
+  int id, eat_quota;
+  int tag = 1;
+  MPI::Status status;
+  int msgOut, msgIn;
+  int toeat;
+
   MPI::Init ( argc, argv );
   
   //Safety check - need at least 2 philosophers to make sense
@@ -22,6 +28,8 @@ int main ( int argc, char *argv[] )
 	    std::cerr << "Need at least 2 philosophers! Try again" << std::endl;
 	    return 1; //non-normal exit
   }
+
+  id = MPI::COMM_WORLD.Get_rank ( );
 
   srand(id + time(NULL)); //ensure different seeds...
   
@@ -40,32 +48,34 @@ int main ( int argc, char *argv[] )
     {
       cout << "wating : " << id << endl; 
       sleep(rand() % 10);
-      cout << "done wating" << endl;
+      cout << "done wating : " << id << endl; 
 
       //request forks
       msgOut = eat_quota;
-      std::cout << "This is Philosopher " << id << " requesting forks with message " << msgOut << std::endl;
+      std::cout << "Request: " << id << " | M: " << msgOut << std::endl;
       MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, 0, tag ); 
       
       //wait for forks
       MPI::COMM_WORLD.Recv ( &msgIn, 1, MPI::INT, 0, tag, status );
-      std::cout << "This is Philosopher " << id << " recieving message of " << msgIn << std::endl;
+      std::cout << "Fufilled: " << id << " | M: " << msgOut << std::endl;
 
       //eat 
-      toeat = rand() % eat_quota;
+      cout << "eating : " << id << endl; 
+      toeat = rand() % 10;
       sleep(toeat);
       eat_quota -= toeat;
+      cout << "done eating : " << id << endl;
 
       //return forks
       msgOut = -1;
-      std::cout << "This is Philosopher " << id << " sending message of " << msgOut << std::endl;
+      std::cout << "Return: " << id << " | M: " << msgOut << std::endl;
       MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, 0, tag ); 
     }
 	
-    std::cout << "This is Philosopher " << id << " and I am full. ";
+    
     //return forks
     msgOut = -1;
-    std::cout << "This is Philosopher " << id << " sending message of " << msgOut << std::endl;
+    std::cout << "Full: " << id << " | M: " << msgOut << std::endl;
     MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, 0, tag ); 
 
   }

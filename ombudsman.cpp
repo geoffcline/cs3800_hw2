@@ -11,17 +11,12 @@ using namespace std;
 void ombudsman()
 {
 	const int p = MPI::COMM_WORLD.Get_size ( );
-	const int id MPI::COMM_WORLD.Get_rank ( );
-	int p;
-	int rid; 
+	int rid, tid;
 	int going_p = p; 
 
 	int* forks;
-	int* requests;
-	int q_start = 0;
-	int q_held = 0;
 
-	int msgIN;
+	int msgIn;
 	int msgOut;
 	int tag = 1;
 
@@ -40,14 +35,16 @@ void ombudsman()
     MPI::COMM_WORLD.Recv ( &msgIn, 1, MPI::INT, MPI::ANY_SOURCE, tag, status );
     rid = status.Get_source();
 
-    if(msgIn == -1) //reporting full
+    if(msgIn == 0) //reporting full
     {
-      cout << "Philos " << rid << " is full." << endl;
+      //cout << "Philos " << rid << " is full." << endl;
       going_p--;
     }
-    else if (msgIn == 0) //returning forks
+    else if (msgIn == -1) //returning forks
     {
-      cout << "Philos " << rid << " is returning forks." << rid << "and " << (rid + 1) % p << endl;
+      //cout << "Philos " << rid << " is returning forks." << rid << "and " << (rid + 1) % p << endl;
+
+      cout << "Forks Returned:  " << rid <<  endl;
       forks[rid] = 0;
       forks[(rid + 1) % p] = 0;
 
@@ -55,36 +52,54 @@ void ombudsman()
       {
         tid = *it;
 
+        cout << "Checking:  " << tid;
+
         if(forks[tid] == 0 && forks[(tid + 1) % p] == 0)
         {
+          
+          cout << " | YES " << endl;
           forks[tid] = tid;
           forks[(tid + 1) % p] = tid;
 
           msgOut = -2;
           MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, tid, tag ); 
 
-          cout << tid << " | Forks Given" << endl;
+          cout << "Held Fufilled: " << tid << endl;
 
-          request.erase(it);
+          //cout << tid << " | Forks Given" << endl;
+
+
+          cout << "about to erase, size: " << requests.size() << endl;
+          requests.erase(it);
+          if(requests.empty())
+            break;
         }
+        else
+        {
+          cout << " | NO " << endl;
+        }
+        
       }
+
+      cout << "Done Checking " << endl;
     }
     else if (msgIn > 0)
     {
-      cout << "Philos " << rid << " is hungry for: " << msgIn;
+      //cout << "Philos " << rid << " is hungry for: " << msgIn;
       if ( forks[rid] == 0 && forks[(rid + 1) % p] == 0)
       {
         forks[rid] = rid;
         forks[(rid + 1) % p] = rid;
 
         msgOut = -2;
+        cout << "Forks Given:  " << rid <<  endl;
         MPI::COMM_WORLD.Send ( &msgOut, 1, MPI::INT, rid, tag ); 
 
-        cout << " | Forks Given" << endl;
+        //cout << " | Forks Given" << endl;
       }
       else
       {
-        cout << " | queued " << endl;
+        cout << "Queued: " << rid << endl;
         requests.push_back(rid);
       }
     }
