@@ -117,5 +117,8 @@ void ombudsman()
     }
   }
 
+
+  delete forks;
+  
   return;
 }

@@ -14,7 +14,7 @@ const int MAX_EAT_SESSION = 10;
 void philosopher()
 {
   int eat_quota = rand() % MAX_TOTAL_EAT;
-  int msgIn, msgOut;
+  int msgIn, msgOut, toeat;
   int tag = 1;
   const int id = MPI::COMM_WORLD.Get_rank ( );
   MPI::Status status;
