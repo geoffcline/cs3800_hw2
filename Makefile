@@ -5,7 +5,7 @@ CXXFLAGS = -Wall -W -s -lpthread
 default: run
 
 run:
-	${CXX} ${CXXFLAGS} *.cpp -o program 
+	${CXX} ${CXXFLAGS} *.cpp -o program2
 	
 clean:
-	rm -f *.o program
+	rm -f *.o program2
