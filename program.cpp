@@ -1,5 +1,15 @@
 #include "program.h"
 
+/*
+ * @author  Geoffrey Cline
+ * @date    10/25/2015
+ * @file    main.cpp
+ * @course  cs3800, section B
+ * @brief   This program sets up the MPI environment
+ *          and launches either the obudsman or philosopher 
+ *          function
+ */
+
 int main ( int argc, char *argv[] ) 
 {
   int id;
@@ -19,10 +29,9 @@ int main ( int argc, char *argv[] )
 
   srand(id + time(NULL)); //ensure different seeds...
   
-  //  Setup Fork Master (Ombudsman) and Philosophers
-  if ( id == 0 ) //Master
+  if ( id == 0 )
     ombudsman();
-  else //I'm a philosopher
+  else           
     philosopher();
   
   //  Terminate MPI.

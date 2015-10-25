@@ -1,26 +1,36 @@
 #include "program.h"
 
+/*
+ * @author  Geoffrey Cline
+ * @date    10/25/2015
+ * @file    ombudsman.cpp
+ * @course  cs3800, section B
+ * @brief   This program simulates the fork ombudsman
+ *          and recieves messages from the philosophers
+ *          assigns forks, and sends phiosophers their status
+ */
+
 void ombudsman()
 {
+  //variables related to MPI environment
 	const int p = MPI::COMM_WORLD.Get_size ( );
 	int rid, tid;
-	int going_p = p - 1; 
+  int msgIn;
+  int tag = 1;
+  MPI::Status status;
 
+  //variables used to store fork & philos status
 	int* forks;
-
-	int msgIn;
-	int tag = 1;
-
-	MPI::Status status;
-
-	forks = new int[p];
-
   list<int> requests;
+  int going_p = p - 1; 
+	
+	forks = new int[p];
 
 	for (int i = 0; i < p; i++)
     forks[i] = 0;
 		
 
+  //while at least 1 philosopher not full
   while(going_p > 0)
   {
     MPI::COMM_WORLD.Recv ( &msgIn, 1, MPI::INT, MPI::ANY_SOURCE, tag, status );

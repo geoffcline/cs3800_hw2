@@ -1,14 +1,28 @@
 #include "program.h"
 
+/*
+ * @author  Geoffrey Cline
+ * @date    10/25/2015
+ * @file    philosopher.cpp
+ * @course  cs3800, section B
+ * @brief   This program simulates the philosopher talking,
+ *          requesting to eat, and eating
+ */
+
 void philosopher()
 {
-  int eat_quota = rand() % (MAX_TOTAL_EAT-MIN_TOTAL_EAT);
-  eat_quota += MIN_TOTAL_EAT;
-  int msgIn, msgOut, toeat;
+  //MPI Environment Related Variables
   int tag = 1;
   MPI::Status status;
+  int msgIn, msgOut;
 
-  while(eat_quota > 0)
+  //eat quota related variables
+  int toeat;
+  int eat_quota = rand() % (MAX_TOTAL_EAT-MIN_TOTAL_EAT);
+  eat_quota += MIN_TOTAL_EAT;
+
+
+  while(eat_quota > 0) //still more left to eat
   {
     sleep(rand() % SLEEP_MAX);
 
