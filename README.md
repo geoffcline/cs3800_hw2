@@ -1,5 +1,11 @@
 # CS3800, HW2: Dining Philosophers
 
+## Running
+
+`mpirun -np NUMBER_OF_PHILOSOPHERS program`
+
+The program is the name of the program produced, which is duplicated completely for each instance. The number of philosophers is determined by the number of instances, indicated at this point. 
+
 ## Structure
 Overall, the MPI setup means that each instance will have their own seperate process, with own main and global variables. Messaging passing is the **only** way to communicate between processes. 
 
